@@ -46,11 +46,19 @@ namespace Microsoft.BotBuilderSamples.Bots
                     ReturnType.Number,
                     ExpressionFunctions.ValidateUnary);
 
-            // add the custom function
-            Expression.Functions.Add(mySqrtFnName, sqrtDelegate);
+            var parser = new ExpressionParser((string func) =>
+            {
+                if (func == mySqrtFnName)
+                {
+                    return sqrtDelegate;
+                }
+                else
+                {
+                    return Expression.Lookup(func);
+                }
+            });
 
-            // by default this uses Expression.Functions which would include the custom function added above.
-            _lgTemplates = Templates.ParseFile(lgFilePath);
+            _lgTemplates = Templates.ParseFile(lgFilePath, expressionParser: parser);
         }
 
         protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
